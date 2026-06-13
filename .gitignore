@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+._*
+
+# Logs
+Library/Logs/TherapyNoteScribe/
+
+# Generated icons (re-generate with generate_icons.py)
+icons/*.png

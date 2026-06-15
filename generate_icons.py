@@ -21,19 +21,38 @@ def create_icon(size):
         fill=(255, 255, 255, 255)
     )
 
-    font_size = int(size * 0.3)
-    try:
-        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", font_size)
-    except (OSError, IOError):
+    # Minimum font size to avoid PIL errors
+    font_size = max(8, int(size * 0.3))
+    font = None
+    
+    # Try to load a TrueType font
+    for font_path in [
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/System/Library/Fonts/Arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    ]:
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+            font = ImageFont.truetype(font_path, font_size)
+            break
         except (OSError, IOError):
-            font = ImageFont.load_default()
+            continue
+    
+    # Fallback: use default font with textsize (works for bitmap fonts)
+    if font is None:
+        font = ImageFont.load_default()
 
     text = "AI"
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
+    
+    # Use textsize for bitmap fonts, textbbox for TrueType
+    try:
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+    except (AttributeError, OSError):
+        # Fallback for bitmap/default font
+        text_w, text_h = draw.textsize(text, font=font)
+    
     draw.text((center - text_w // 2, center - text_h // 2 - 1), text, fill=(37, 99, 235, 255), font=font)
 
     return img

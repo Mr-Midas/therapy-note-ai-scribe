@@ -15,22 +15,39 @@ end tell
 -- Remove old app if exists
 do shell script "rm -rf " & quoted form of appPath
 
--- Build shell script without heredocs (use printf to write files)
-set sh to "APP_PATH=" & quoted form of appPath & linefeed
-set sh to sh & "CMD_FILE=" & quoted form of commandFile & linefeed
-set sh to sh & "mkdir -p \"$APP_PATH/Contents/MacOS\"" & linefeed
-set sh to sh & "mkdir -p \"$APP_PATH/Contents/Resources\"" & linefeed
-set sh to sh & "cp \"$CMD_FILE\" \"$APP_PATH/Contents/Resources/start_therapy_scribe.command\"" & linefeed
+-- Create app bundle directories
+do shell script "mkdir -p " & quoted form of appPath & "/Contents/MacOS " & quoted form of appPath & "/Contents/Resources"
 
--- Write Info.plist using printf
-set sh to sh & "printf '%s\\n' '<?xml version=\"1.0\" encoding=\"UTF-8\"?>' '<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">' '<plist version=\"1.0\">' '<dict>' '<key>CFBundleExecutable</key><string>launcher</string>' '<key>CFBundleName</key><string>TherapyNote AI Scribe</string>' '<key>CFBundleDisplayName</key><string>TherapyNote AI Scribe</string>' '<key>CFBundleIdentifier</key><string>com.therapynote.ai-scribe</string>' '<key>CFBundleVersion</key><string>1.0</string>' '<key>CFBundlePackageType</key><string>APPL</string>' '<key>LSMinimumSystemVersion</key><string>11.0</string>' '<key>LSUIElement</key><false/>' '</dict>' '</plist>' > \"$APP_PATH/Contents/Info.plist\"" & linefeed
+-- Copy .command into app bundle
+do shell script "cp " & quoted form of commandFile & " " & quoted form of appPath & "/Contents/Resources/start_therapy_scribe.command"
 
--- Write launcher using printf
-set sh to sh & "printf '%s\\n' '#!/bin/bash' 'SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"' 'exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"' > \"$APP_PATH/Contents/MacOS/launcher\"" & linefeed
+-- Write Info.plist
+do shell script "cat > " & quoted form of appPath & "/Contents/Info.plist << 'EOF'
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+    <key>CFBundleExecutable</key><string>launcher</string>
+    <key>CFBundleName</key><string>TherapyNote AI Scribe</string>
+    <key>CFBundleDisplayName</key><string>TherapyNote AI Scribe</string>
+    <key>CFBundleIdentifier</key><string>com.therapynote.ai-scribe</string>
+    <key>CFBundleVersion</key><string>1.0</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>LSMinimumSystemVersion</key><string>11.0</string>
+    <key>LSUIElement</key><false/>
+</dict>
+</plist>
+EOF"
 
-set sh to sh & "chmod +x \"$APP_PATH/Contents/MacOS/launcher\"" & linefeed
+-- Write launcher
+do shell script "cat > " & quoted form of appPath & "/Contents/MacOS/launcher << 'EOF'
+#!/bin/bash
+SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"
+exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"
+EOF"
 
-do shell script sh
+-- Make launcher executable
+do shell script "chmod +x " & quoted form of appPath & "/Contents/MacOS/launcher"
 
 -- Success Message
 display dialog "TherapyNote AI Scribe app created on your Desktop!" buttons {"OK"} default button 1 with title "Setup Complete"

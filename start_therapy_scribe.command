@@ -37,6 +37,8 @@ if ! command -v ollama &> /dev/null; then
   exit 1
 fi
 
+# Fix CORS errors (403 Forbidden) for Chrome Extensions
+export OLLAMA_ORIGINS="*"
 ollama serve > "$LOG_FILE" 2>&1 &
 OLLAMA_PID=$!
 

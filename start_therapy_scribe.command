@@ -20,34 +20,21 @@ error_popup() {
 }
 
 # ── Check and Reset Ollama ──────────────────────────────────
-# 1. Try to find the ollama binary in common locations
-OLLAMA_BIN=""
-for path in "/usr/local/bin/ollama" "/opt/homebrew/bin/ollama" "/usr/bin/ollama" "/bin/ollama"; do
-    if [ -f "$path" ]; then
-        OLLAMA_BIN="$path"
-        break
-    fi
-done
-
-# 2. Fallback: check if it's inside the Ollama.app bundle
-if [ -z "$OLLAMA_BIN" ] && [ -d "/Applications/Ollama.app" ]; then
-    # Search for the binary inside the app bundle
-    FOUND_BIN=$(find /Applications/Ollama.app -name "ollama" -type f | head -n 1)
-    if [ -n "$FOUND_BIN" ]; then
-        OLLAMA_BIN="$FOUND_BIN"
-    fi
-fi
-
-# 3. If still not found, show error
-if [ -z "$OLLAMA_BIN" ]; then
-    error_popup "Ollama binary not found.\n\nPlease make sure you have installed Ollama from https://ollama.com/download"
-    exit 1
-fi
-
 # We kill any existing ollama process to ensure it starts with OLLAMA_ORIGINS="*"
-# This prevents the 403 Forbidden error in Chrome Extensions.
 pkill -f ollama || true
 sleep 2
+
+# Define the absolute path we found on your Mac
+OLLAMA_BIN="/usr/local/bin/ollama"
+
+if [ ! -f "$OLLAMA_BIN" ]; then
+    # Final fallback: try the App bundle path
+    OLLAMA_BIN="/Applications/Ollama.app/Contents/Resources/ollama"
+    if [ ! -f "$OLLAMA_BIN" ]; then
+        error_popup "Ollama binary not found at /usr/local/bin/ollama or in the App bundle.\n\nPlease reinstall Ollama from https://ollama.com/download"
+        exit 1
+    fi
+fi
 
 # Start Ollama with CORS permissions enabled
 export OLLAMA_ORIGINS="*"

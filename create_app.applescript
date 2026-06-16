@@ -4,7 +4,9 @@
 -- After that, use "TherapyNote AI Scribe.app" instead.
 -- ─────────────────────────────────────────────────────────────
 
-set scriptDir to do shell script "dirname \"$0\""
+-- Get the directory of this script (works when run from Finder)
+set scriptPath to POSIX path of (path to me)
+set scriptDir to do shell script "dirname " & quoted form of scriptPath
 set commandFile to scriptDir & "/start_therapy_scribe.command"
 set appPath to (path to desktop folder as text) & "TherapyNote AI Scribe.app"
 
@@ -33,7 +35,7 @@ mkdir -p \"$APP_PATH/Contents/Resources\"
 cat > \"$APP_PATH/Contents/Info.plist\" << 'PLIST'
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
+<plist version=\"1.0\>
 <dict>
     <key>CFBundleExecutable</key>
     <string>launcher</string>
@@ -58,8 +60,8 @@ PLIST
 # Write the launcher shell script
 cat > \"$APP_PATH/Contents/MacOS/launcher\" << 'LAUNCHER'
 #!/bin/bash
-SCRIPT_DIR=\"$(cd \"$(dirname \"\$0\")/../..\" && pwd)\"
-exec bash \"\$SCRIPT_DIR/start_therapy_scribe.command\"
+SCRIPT_DIR=\"$(cd \"$(dirname \"\\$0\")/../..\" && pwd)\"
+exec bash \"\\$SCRIPT_DIR/start_therapy_scribe.command\"
 LAUNCHER
 
 chmod +x \"$APP_PATH/Contents/MacOS/launcher\"
@@ -68,10 +70,10 @@ chmod +x \"$APP_PATH/Contents/MacOS/launcher\"
 -- Make the .command file executable
 do shell script "chmod +x " & quoted form of commandFile
 
--- Ask if user wants to pin to Dock
-display dialog "TherapyNote AI Scribe.app has been created on your Desktop!
-
-You can drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete" with note
+-- Success dialog
+display dialog "TherapyNote AI Scribe.app has been created on your Desktop!¬
+¬
+You can drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete"
 
 -- Try to add to Dock
 try

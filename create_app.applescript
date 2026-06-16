@@ -15,35 +15,18 @@ end tell
 -- Remove old app if exists
 do shell script "rm -rf " & quoted form of appPath
 
--- Build shell script safely line-by-line to prevent compiler/copy-paste errors
+-- Build shell script without heredocs (use printf to write files)
 set sh to "APP_PATH=" & quoted form of appPath & linefeed
 set sh to sh & "CMD_FILE=" & quoted form of commandFile & linefeed
 set sh to sh & "mkdir -p \"$APP_PATH/Contents/MacOS\"" & linefeed
 set sh to sh & "mkdir -p \"$APP_PATH/Contents/Resources\"" & linefeed
 set sh to sh & "cp \"$CMD_FILE\" \"$APP_PATH/Contents/Resources/start_therapy_scribe.command\"" & linefeed
 
-set sh to sh & "cat > \"$APP_PATH/Contents/Info.plist\" << 'EOF'" & linefeed
-set sh to sh & "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" & linefeed
-set sh to sh & "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" & linefeed
-set sh to sh & "<plist version=\"1.0\">" & linefeed
-set sh to sh & "<dict>" & linefeed
-set sh to sh & "<key>CFBundleExecutable</key><string>launcher</string>" & linefeed
-set sh to sh & "<key>CFBundleName</key><string>TherapyNote AI Scribe</string>" & linefeed
-set sh to sh & "<key>CFBundleDisplayName</key><string>TherapyNote AI Scribe</string>" & linefeed
-set sh to sh & "<key>CFBundleIdentifier</key><string>com.therapynote.ai-scribe</string>" & linefeed
-set sh to sh & "<key>CFBundleVersion</key><string>1.0</string>" & linefeed
-set sh to sh & "<key>CFBundlePackageType</key><string>APPL</string>" & linefeed
-set sh to sh & "<key>LSMinimumSystemVersion</key><string>11.0</string>" & linefeed
-set sh to sh & "<key>LSUIElement</key><false/>" & linefeed
-set sh to sh & "</dict>" & linefeed
-set sh to sh & "</plist>" & linefeed
-set sh to sh & "EOF" & linefeed
+-- Write Info.plist using printf
+set sh to sh & "printf '%s\\n' '<?xml version=\"1.0\" encoding=\"UTF-8\"?>' '<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">' '<plist version=\"1.0\">' '<dict>' '<key>CFBundleExecutable</key><string>launcher</string>' '<key>CFBundleName</key><string>TherapyNote AI Scribe</string>' '<key>CFBundleDisplayName</key><string>TherapyNote AI Scribe</string>' '<key>CFBundleIdentifier</key><string>com.therapynote.ai-scribe</string>' '<key>CFBundleVersion</key><string>1.0</string>' '<key>CFBundlePackageType</key><string>APPL</string>' '<key>LSMinimumSystemVersion</key><string>11.0</string>' '<key>LSUIElement</key><false/>' '</dict>' '</plist>' > \"$APP_PATH/Contents/Info.plist\"" & linefeed
 
-set sh to sh & "cat > \"$APP_PATH/Contents/MacOS/launcher\" << 'EOF'" & linefeed
-set sh to sh & "#!/bin/bash" & linefeed
-set sh to sh & "SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"" & linefeed
-set sh to sh & "exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"" & linefeed
-set sh to sh & "EOF" & linefeed
+-- Write launcher using printf
+set sh to sh & "printf '%s\\n' '#!/bin/bash' 'SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"' 'exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"' > \"$APP_PATH/Contents/MacOS/launcher\"" & linefeed
 
 set sh to sh & "chmod +x \"$APP_PATH/Contents/MacOS/launcher\"" & linefeed
 

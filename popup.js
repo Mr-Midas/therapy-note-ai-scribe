@@ -85,39 +85,35 @@ generateBtn.addEventListener("click", async () => {
   copyBtn.classList.remove("copied");
 
   try {
-    const response = await fetch(OLLAMA_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        stream: false,
-        system: SYSTEM_PROMPT,
-        prompt: notes,
-        options: {
-          temperature: 0.3,
-          top_p: 0.9,
-          num_predict: 2048
+    // Send request to background service worker to bypass CORS
+    const response = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        { 
+          type: "GENERATE_NOTE", 
+          prompt: notes, 
+          systemPrompt: SYSTEM_PROMPT 
+        }, 
+        (res) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(res);
+          }
         }
-      })
+      );
     });
 
-    if (!response.ok) {
-      throw new Error(`Ollama responded with status ${response.status}`);
+    if (!response.success) {
+      throw new Error(response.error || "Unknown error occurred");
     }
 
-    const data = await response.json();
-
-    if (!data.response || data.response.trim() === "") {
-      throw new Error("Ollama returned an empty response.");
-    }
-
-    outputNotes.value = data.response.trim();
+    outputNotes.value = response.response.trim();
     outputSection.classList.add("visible");
     showStatus("Note generated successfully. Review before copying to TherapyBoss.", "success");
   } catch (err) {
     let msg = err.message;
-    if (err.name === "TypeError" && msg.includes("fetch")) {
-      msg = "Cannot connect to Ollama. Make sure Ollama is running (open Terminal, type: ollama serve).";
+    if (msg.includes("Could not establish connection")) {
+      msg = "Extension background script not ready. Please reload the extension.";
     }
     showStatus(`Error: ${msg}`, "error");
   } finally {

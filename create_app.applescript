@@ -20,8 +20,13 @@ do shell script "rm -rf " & quoted form of (POSIX path of appPath)
 -- Create app bundle using a separate shell script (avoids quoting hell)
 set shellScript to "
 APP_PATH=" & quoted form of (POSIX path of appPath) & "
+COMMAND_FILE=" & quoted form of commandFile & "
+
 mkdir -p \"$APP_PATH/Contents/MacOS\"
 mkdir -p \"$APP_PATH/Contents/Resources\"
+
+# Copy the command file into the app bundle so it is truly standalone
+cp \"$COMMAND_FILE\" \"$APP_PATH/Contents/Resources/start_therapy_scribe.command\"
 
 # Info.plist
 cat > \"$APP_PATH/Contents/Info.plist\" << 'EOF'
@@ -44,7 +49,8 @@ EOF
 # Launcher script
 cat > \"$APP_PATH/Contents/MacOS/launcher\" << 'EOF'
 #!/bin/bash
-SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../..\" && pwd)\"
+# Point the launcher to the Resources folder where the script was copied
+SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"
 exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"
 EOF
 
@@ -53,12 +59,8 @@ chmod +x \"$APP_PATH/Contents/MacOS/launcher\"
 
 do shell script shellScript
 
--- Make .command executable
-do shell script "chmod +x " & quoted form of commandFile
-
--- Success
-display dialog "TherapyNote AI Scribe.app created on your Desktop!¬
-Drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete"
+-- Success (Syntax error resolved here)
+display dialog "TherapyNote AI Scribe.app created on your Desktop!" & return & "Drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete"
 
 -- Try to add to Dock
 try

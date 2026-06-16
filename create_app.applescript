@@ -21,9 +21,8 @@ do shell script "mkdir -p " & quoted form of appPath & "/Contents/MacOS " & quot
 -- Copy .command into app bundle
 do shell script "cp " & quoted form of commandFile & " " & quoted form of appPath & "/Contents/Resources/start_therapy_scribe.command"
 
--- Write Info.plist
-do shell script "cat > " & quoted form of appPath & "/Contents/Info.plist << 'EOF'
-<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+-- Write Info.plist using echo (no heredoc)
+set plistContent to "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 <plist version=\"1.0\">
 <dict>
@@ -36,15 +35,17 @@ do shell script "cat > " & quoted form of appPath & "/Contents/Info.plist << 'EO
     <key>LSMinimumSystemVersion</key><string>11.0</string>
     <key>LSUIElement</key><false/>
 </dict>
-</plist>
-EOF"
+</plist>"
+
+do shell script "printf %s " & quoted form of plistContent & " > " & quoted form of appPath & "/Contents/Info.plist"
 
 -- Write launcher
-do shell script "cat > " & quoted form of appPath & "/Contents/MacOS/launcher << 'EOF'
-#!/bin/bash
+set launcherContent to "#!/bin/bash
 SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../Resources\" && pwd)\"
 exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"
-EOF"
+"
+
+do shell script "printf %s " & quoted form of launcherContent & " > " & quoted form of appPath & "/Contents/MacOS/launcher"
 
 -- Make launcher executable
 do shell script "chmod +x " & quoted form of appPath & "/Contents/MacOS/launcher"

@@ -1,16 +1,12 @@
--- ─────────────────────────────────────────────────────────────
 -- TherapyNote AI Scribe — App Generator
--- Double-click this ONCE to create the desktop app.
--- After that, use "TherapyNote AI Scribe.app" instead.
--- ─────────────────────────────────────────────────────────────
+-- Double-click to create the desktop app on your Desktop.
 
--- Get the directory of this script (works when run from Finder)
 set scriptPath to POSIX path of (path to me)
 set scriptDir to do shell script "dirname " & quoted form of scriptPath
 set commandFile to scriptDir & "/start_therapy_scribe.command"
 set appPath to (path to desktop folder as text) & "TherapyNote AI Scribe.app"
 
--- Verify the .command file exists
+-- Verify .command exists
 tell application "System Events"
 	if not (exists file commandFile) then
 		display dialog "Cannot find start_therapy_scribe.command in the same folder." buttons {"OK"} default button "OK" with icon stop with title "Setup Error"
@@ -18,62 +14,51 @@ tell application "System Events"
 	end if
 end tell
 
--- Remove old version if it exists
-tell application "System Events"
-	if (exists folder appPath) then
-		do shell script "rm -rf " & quoted form of (POSIX path of appPath)
-	end if
-end tell
+-- Remove old app if exists
+do shell script "rm -rf " & quoted form of (POSIX path of appPath)
 
--- Create the .app bundle structure
-do shell script "
+-- Create app bundle using a separate shell script (avoids quoting hell)
+set shellScript to "
 APP_PATH=" & quoted form of (POSIX path of appPath) & "
 mkdir -p \"$APP_PATH/Contents/MacOS\"
 mkdir -p \"$APP_PATH/Contents/Resources\"
 
-# Write Info.plist
-cat > \"$APP_PATH/Contents/Info.plist\" << 'PLIST'
+# Info.plist
+cat > \"$APP_PATH/Contents/Info.plist\" << 'EOF'
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\>
+<plist version=\"1.0\">
 <dict>
-    <key>CFBundleExecutable</key>
-    <string>launcher</string>
-    <key>CFBundleName</key>
-    <string>TherapyNote AI Scribe</string>
-    <key>CFBundleDisplayName</key>
-    <string>TherapyNote AI Scribe</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.therapynote.ai-scribe</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>11.0</string>
-    <key>LSUIElement</key>
-    <false/>
+    <key>CFBundleExecutable</key><string>launcher</string>
+    <key>CFBundleName</key><string>TherapyNote AI Scribe</string>
+    <key>CFBundleDisplayName</key><string>TherapyNote AI Scribe</string>
+    <key>CFBundleIdentifier</key><string>com.therapynote.ai-scribe</string>
+    <key>CFBundleVersion</key><string>1.0</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>LSMinimumSystemVersion</key><string>11.0</string>
+    <key>LSUIElement</key><false/>
 </dict>
 </plist>
-PLIST
+EOF
 
-# Write the launcher shell script
-cat > \"$APP_PATH/Contents/MacOS/launcher\" << 'LAUNCHER'
+# Launcher script
+cat > \"$APP_PATH/Contents/MacOS/launcher\" << 'EOF'
 #!/bin/bash
-SCRIPT_DIR=\"$(cd \"$(dirname \"\\$0\")/../..\" && pwd)\"
-exec bash \"\\$SCRIPT_DIR/start_therapy_scribe.command\"
-LAUNCHER
+SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")/../..\" && pwd)\"
+exec bash \"$SCRIPT_DIR/start_therapy_scribe.command\"
+EOF
 
 chmod +x \"$APP_PATH/Contents/MacOS/launcher\"
 "
 
--- Make the .command file executable
+do shell script shellScript
+
+-- Make .command executable
 do shell script "chmod +x " & quoted form of commandFile
 
--- Success dialog
-display dialog "TherapyNote AI Scribe.app has been created on your Desktop!¬
-¬
-You can drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete"
+-- Success
+display dialog "TherapyNote AI Scribe.app created on your Desktop!¬
+Drag it to your Dock for easy access." buttons {"OK"} default button "OK" with title "Setup Complete"
 
 -- Try to add to Dock
 try

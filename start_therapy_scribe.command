@@ -20,7 +20,11 @@ error_popup() {
 }
 
 # ── Check and Reset Ollama ──────────────────────────────────
-# We kill any existing ollama process to ensure it starts with OLLAMA_ORIGINS="*"
+# Force set OLLAMA_ORIGINS globally for the macOS session.
+# This is the only way to fix 403 Forbidden errors for the Ollama App.
+launchctl setenv OLLAMA_ORIGINS "*"
+
+# Kill any existing ollama process to ensure the new settings take effect
 pkill -f ollama || true
 sleep 2
 

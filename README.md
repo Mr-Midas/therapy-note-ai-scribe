@@ -17,9 +17,10 @@ A local, private AI-powered Chrome Extension for home health occupational therap
 
 **Generated output:**
 > **Subjective:** Patient reports right shoulder pain at 5/10, noting difficulty with upper body dressing.
-> **Objective:** Therapeutic Exercise: Facilitated active range of motion (AROM) of the right upper extremity for 10 minutes to improve joint mobility and decrease pain prior to ADL participation. ADL Training: Instructed patient in upper body dressing utilizing adaptive equipment (reacher). Patient required Mod A for task completion due to decreased shoulder internal rotation and safety awareness.
+> **Objective:** - Therapeutic Exercise: Facilitated active range of motion (AROM) of the right upper extremity for 10 minutes to improve joint mobility and decrease pain prior to ADL participation.
+> - ADL Training: Instructed patient in upper body dressing utilizing adaptive equipment (reacher). Patient required Mod A for task completion due to decreased shoulder internal rotation and safety awareness. Therapist provided verbal cues for sequencing and joint protection techniques.
 > **Assessment:** Patient demonstrates impaired right upper extremity AROM and decreased independence with upper body dressing. Skilled intervention required to train in adaptive equipment use to maximize safety and independence with ADLs.
-> **Plan:** Continue OT per plan of care to address upper extremity ROM and ADL retraining.
+> **Plan:** Continue OT per plan of care to address upper extremity ROM and ADL retraining. Will progress to Min A for upper body dressing utilizing the reacher.
 
 ---
 
@@ -52,7 +53,7 @@ Click the green **Code** button above → **Download ZIP** → unzip it to your 
 Or if you're comfortable with Terminal:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/therapy-note-ai-scribe.git ~/Desktop/therapy-note-ai-scribe
+git clone https://github.com/Mr-Midas/therapy-note-ai-scribe.git ~/therapy-note-ai-scribe
 ```
 
 ### 4. Generate the extension icons
@@ -60,7 +61,7 @@ git clone https://github.com/YOUR_USERNAME/therapy-note-ai-scribe.git ~/Desktop/
 Open Terminal and run:
 
 ```bash
-cd ~/Desktop/therapy-note-ai-scribe
+cd ~/therapy-note-ai-scribe
 pip3 install Pillow
 python3 generate_icons.py
 ```
@@ -71,17 +72,19 @@ python3 generate_icons.py
 2. Type `chrome://extensions` in the address bar, press Enter
 3. Toggle **Developer mode** ON (top-right corner)
 4. Click **Load unpacked** (top-left)
-5. Select the `therapy-note-ai-scribe` folder on your Desktop
-6. The extension is now installed — click the puzzle-piece icon in Chrome's toolbar and pin it
+5. Select the project folder: `~/therapy-note-ai-scribe`
+6. Pin the extension: click puzzle-piece icon → pin "TherapyNote AI Scribe"
 
-### 6. Create the desktop app (one-time)
+### 6. Create the desktop app
 
-Double-click **`create_app.applescript`** in the folder. It will:
+Run the setup script in Terminal:
 
-- Build a proper app called **TherapyNote AI Scribe.app** on your Desktop
-- Ask to add it to your Dock automatically
+```bash
+cd ~/therapy-note-ai-scribe
+bash create_app.sh
+```
 
-If it doesn't add to the Dock, just drag **TherapyNote AI Scribe.app** from your Desktop into your Dock.
+This creates **TherapyNote AI Scribe.app** on your Desktop. Drag it to your Dock for easy access.
 
 ---
 

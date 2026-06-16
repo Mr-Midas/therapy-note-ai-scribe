@@ -12,6 +12,31 @@ COMMAND_FILE="$SCRIPT_DIR/start_therapy_scribe.command"
 
 echo "🚀 Starting App Generation..."
 
+# -----------------------------------------------------------------
+# PRE-FLIGHT CHECK: Verify Ollama is actually installed on this Mac
+# -----------------------------------------------------------------
+echo "🔍 Verifying Ollama installation..."
+OLLAMA_FOUND=false
+# Check common paths
+for path in "/usr/local/bin/ollama" "/opt/homebrew/bin/ollama" "/usr/bin/ollama" "/bin/ollama"; do
+    if [ -f "$path" ]; then OLLAMA_FOUND=true; break; fi
+done
+
+# Check App bundle
+if [ "$OLLAMA_FOUND" = false ] && [ -d "/Applications/Ollama.app" ]; then
+    if [ -n "$(find /Applications/Ollama.app -name "ollama" -type f | head -n 1)" ]; then
+        OLLAMA_FOUND=true
+    fi
+fi
+
+if [ "$OLLAMA_FOUND" = false ]; then
+    osascript -e "display dialog \"Pre-flight check failed: Ollama binary not found on this system.\n\nPlease install Ollama from https://ollama.com/download before creating the app.\" buttons {\"OK\"} default button 1 with icon stop with title \"Installation Error\""
+    echo "❌ Error: Ollama not found. Aborting app creation."
+    exit 1
+fi
+echo "✅ Ollama found. Proceeding..."
+# -----------------------------------------------------------------
+
 # 2. Verify .command exists
 if [ ! -f "$COMMAND_FILE" ]; then
     osascript -e "display dialog \"Cannot find start_therapy_scribe.command in $SCRIPT_DIR\" buttons {\"OK\"} default button 1 with icon stop with title \"Error\""

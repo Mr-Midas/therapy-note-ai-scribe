@@ -20,13 +20,15 @@ error_popup() {
 }
 
 # ── Check and Reset Ollama ──────────────────────────────────
+# Add common binary paths to ensure we can find 'ollama'
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 # We kill any existing ollama process to ensure it starts with OLLAMA_ORIGINS="*"
-# This prevents the 403 Forbidden error in Chrome Extensions.
 pkill -f ollama || true
 sleep 2
 
 if ! command -v ollama &> /dev/null; then
-  error_popup "Ollama is not installed.\n\nPlease install it from https://ollama.com/download and then double-click this file again."
+  error_popup "Ollama command not found.\n\nPlease ensure Ollama is installed from https://ollama.com/download and then double-click this file again."
   exit 1
 fi
 

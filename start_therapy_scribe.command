@@ -19,25 +19,18 @@ error_popup() {
   osascript -e "display dialog \"$1\" buttons {\"OK\"} default button \"OK\" with icon stop with title \"TherapyNote AI Scribe\""
 }
 
-# ── Check if Ollama is already running ────────────────────────
-check_ollama() {
-  curl -s --max-time 2 "$OLLAMA_URL/api/tags" > /dev/null 2>&1
-}
+# ── Check and Reset Ollama ──────────────────────────────────
+# We kill any existing ollama process to ensure it starts with OLLAMA_ORIGINS="*"
+# This prevents the 403 Forbidden error in Chrome Extensions.
+pkill -f ollama || true
+sleep 2
 
-if check_ollama; then
-  # Already running — just open Chrome
-  open "$SCRIPT_DIR/popup.html"
-  osascript -e 'tell application "Google Chrome" to activate' 2>/dev/null
-  exit 0
-fi
-
-# ── Start Ollama in background ───────────────────────────────
 if ! command -v ollama &> /dev/null; then
   error_popup "Ollama is not installed.\n\nPlease install it from https://ollama.com/download and then double-click this file again."
   exit 1
 fi
 
-# Fix CORS errors (403 Forbidden) for Chrome Extensions
+# Start Ollama with CORS permissions enabled
 export OLLAMA_ORIGINS="*"
 ollama serve > "$LOG_FILE" 2>&1 &
 OLLAMA_PID=$!

@@ -20,21 +20,38 @@ error_popup() {
 }
 
 # ── Check and Reset Ollama ──────────────────────────────────
-# Add common binary paths to ensure we can find 'ollama'
-export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+# 1. Try to find the ollama binary in common locations
+OLLAMA_BIN=""
+for path in "/usr/local/bin/ollama" "/opt/homebrew/bin/ollama" "/usr/bin/ollama" "/bin/ollama"; do
+    if [ -f "$path" ]; then
+        OLLAMA_BIN="$path"
+        break
+    fi
+done
+
+# 2. Fallback: check if it's inside the Ollama.app bundle
+if [ -z "$OLLAMA_BIN" ] && [ -d "/Applications/Ollama.app" ]; then
+    # Search for the binary inside the app bundle
+    FOUND_BIN=$(find /Applications/Ollama.app -name "ollama" -type f | head -n 1)
+    if [ -n "$FOUND_BIN" ]; then
+        OLLAMA_BIN="$FOUND_BIN"
+    fi
+fi
+
+# 3. If still not found, show error
+if [ -z "$OLLAMA_BIN" ]; then
+    error_popup "Ollama binary not found.\n\nPlease make sure you have installed Ollama from https://ollama.com/download"
+    exit 1
+fi
 
 # We kill any existing ollama process to ensure it starts with OLLAMA_ORIGINS="*"
+# This prevents the 403 Forbidden error in Chrome Extensions.
 pkill -f ollama || true
 sleep 2
 
-if ! command -v ollama &> /dev/null; then
-  error_popup "Ollama command not found.\n\nPlease ensure Ollama is installed from https://ollama.com/download and then double-click this file again."
-  exit 1
-fi
-
 # Start Ollama with CORS permissions enabled
 export OLLAMA_ORIGINS="*"
-ollama serve > "$LOG_FILE" 2>&1 &
+"$OLLAMA_BIN" serve > "$LOG_FILE" 2>&1 &
 OLLAMA_PID=$!
 
 # ── Wait for Ollama to be ready (up to 30 seconds) ───────────

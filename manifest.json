@@ -5,14 +5,21 @@
   "description": "Local AI-powered clinical documentation assistant for home health therapists. Converts raw shorthand notes into Medicare-compliant SOAP notes using Ollama.",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*.therapyboss.com/*"],
+      "js": ["content.js"]
+    }
+  ],
   "host_permissions": [
-
-    "http://localhost:11434/*"
+    "http://localhost:11434/*",
+    "*://*.therapyboss.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

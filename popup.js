@@ -29,6 +29,8 @@ const MODEL = "phi3"; // Switched to phi3 for significantly faster performance o
 const rawNotes = document.getElementById("rawNotes");
 const outputNotes = document.getElementById("outputNotes");
 const generateBtn = document.getElementById("generateBtn");
+const fillBtn = document.getElementById("fillBtn");
+const fillButtonRow = document.getElementById("fillButtonRow");
 const copyBtn = document.getElementById("copyBtn");
 const clearBtn = document.getElementById("clearBtn");
 const outputSection = document.getElementById("outputSection");
@@ -137,6 +139,7 @@ generateBtn.addEventListener("click", async () => {
 
     outputNotes.value = data.response.trim();
     outputSection.classList.add("visible");
+    fillButtonRow.style.display = "flex";
     showStatus("Note generated successfully. Review before copying to TherapyBoss.", "success");
     
     // Save result to storage
@@ -150,6 +153,39 @@ generateBtn.addEventListener("click", async () => {
   } finally {
     generateBtn.classList.remove("loading");
     generateBtn.disabled = false;
+  }
+});
+
+// ── Fill in TherapyBoss ────────────────────────────────────
+
+fillBtn.addEventListener("click", async () => {
+  const text = outputNotes.value.trim();
+  if (!text) {
+    showStatus("Nothing to fill. Generate a note first.", "error");
+    return;
+  }
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        { type: "FILL_NOTE", text: text },
+        (res) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(res);
+          }
+        }
+      );
+    });
+
+    if (response.success) {
+      showStatus("Successfully filled in TherapyBoss!", "success");
+    } else {
+      showStatus(`Error: ${response.error}`, "error");
+    }
+  } catch (err) {
+    showStatus(`Error: ${err.message}`, "error");
   }
 });
 
@@ -185,6 +221,7 @@ clearBtn.addEventListener("click", async () => {
   rawNotes.value = "";
   outputNotes.value = "";
   outputSection.classList.remove("visible");
+  fillButtonRow.style.display = "none";
   hideStatus();
   rawNotes.focus();
   await saveState();
